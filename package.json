@@ -1,0 +1,13 @@
+{
+  "name": "xkTemp-Bot",
+  "version": "1.0.0",
+  "description": "xkTemp QQBot login and notice",
+  "main": "index.js",
+  "repository": "git@github.com:GeekPara/xkTemp-Bot.git",
+  "author": "gbCzz <Eason0208@163.com>",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^0.27.2",
+    "oicq": "^2.3.1"
+  }
+}
