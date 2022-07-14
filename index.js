@@ -13,7 +13,7 @@ const account = 2945673565;
 const client = createClient(account);
 
 let status = {};
-let userData = {};
+let userData = JSON.parse(fs.readFileSync('./user.json'));
 
 //登录
 client.on('system.online', () => {
@@ -41,9 +41,10 @@ client.on('message.private', (data) => {
 	if (data.raw_message == '注册') {
 		status[data.sender.user_id] = {};
 		status[data.sender.user_id].mode = SignUpStatus.INITING;
+		userData[data.sender.user_id].user_id = data.sender.user_id;
 		client.sendPrivateMsg(
 			data.sender.user_id,
-			'请按照提示进行注册，在任意时刻发送“取消”以中止注册流程'
+			'请按照提示进行注册，在任意时刻发送“取消”以终止注册流程'
 		);
 		client.sendPrivateMsg(data.sender.user_id, '请发送学生姓名：');
 
@@ -51,7 +52,7 @@ client.on('message.private', (data) => {
 
 		userData[data.sender.user_id] = {};
 	} else if (data.raw_message == '取消') {
-		client.sendPrivateMsg(data.sender.user_id, '已中止注册流程');
+		client.sendPrivateMsg(data.sender.user_id, '已终止注册流程');
 
 		delete userData[data.sender.user_id];
 	} else if (
@@ -132,13 +133,18 @@ client.on('message.private', (data) => {
 	} else if (
 		status[data.sender.user_id].input == SignUpStatus.WAITING_FOR_DORM
 	) {
-		userData[data.sender.user_id].dorm = data.raw_message;
-
-		status[data.sender.user_id].input = SignUpStatus.CHECKING;
+		if (data.raw_message.length != 4 || /\d{4}/g.test(data.raw_message) == false) {
+			client.sendPrivateMsg(
+				data.sender.user_id,
+				'宿舍号不符合格式，请检查修改后重新发送！'
+			);
+		} else {
+			userData[data.sender.user_id].dorm = data.raw_message;
+			status[data.sender.user_id].input = SignUpStatus.CHECKING;
+		}
 	}
 
 	if (status[data.sender.user_id].input == SignUpStatus.CHECKING) {
-		console.log(status[data.sender.user_id].input);
 		client.sendPrivateMsg(
 			data.sender.user_id,
 			`以下是您的体温打卡填报信息，请确认是否正确。如正确，请发送“确认”以完成注册。如不正确，请发送 修改xx 以修改相应信息（例：如要修改家庭住址，请发送 修改家庭住址 ）。\n姓名：${
@@ -158,7 +164,10 @@ client.on('message.private', (data) => {
 		status[data.sender.user_id].mode = SignUpStatus.EDITING;
 
 		if (data.raw_message == '确认') {
-			fs.writeFileSync('./user.json')
+			fs.writeFileSync(
+				'./user.json',
+				JSON.stringify(userData, null, '  ')
+			);
 			client.sendPrivateMsg(
 				data.sender.user_id,
 				'注册成功，将自动为您订阅每日打卡情况推送'
