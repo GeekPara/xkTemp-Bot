@@ -8,7 +8,7 @@ const XkApis = {
 };
 
 // 主干
-export async function main({
+export async function tempSubmit({
 	// 解构入参对象
 	mobile,
 	password,
@@ -46,7 +46,7 @@ export async function main({
 }
 
 // 获取用户信息，对应鑫考电脑端登录API
-async function getUserInfo(mobile, password, childnum) {
+export async function getUserInfo(mobile, password, childnum) {
 	// 发送POST请求
 	let res = await axios.post(
 		XkApis.getUserInfo,
@@ -70,7 +70,7 @@ async function getUserInfo(mobile, password, childnum) {
 }
 
 // 获取Token，对应鑫考手机端登录API
-async function getToken(mobile, password) {
+export async function getToken(mobile, password) {
 	// POST登录API
 	let res = await axios.post(
 		XkApis.getToken,
