@@ -5,7 +5,7 @@
  * Author: gbCzz
  */
 
-import { createClient } from 'oicq';
+import { createClient, segment } from 'oicq';
 import fs from 'fs';
 import SignUpStatus from './status.js';
 
@@ -33,12 +33,26 @@ client
 //监听新好友
 client.on('request.friend', async (data) => {
 	await data.approve();
-	client.sendPrivateMsg(data.user_id, '114514');
+	client.sendPrivateMsg(
+		data.user_id,
+		'欢迎使用鑫考体温自动打卡系统！\n发送“注册”以进行注册\n发送“关于”查看项目相关信息\n发送“赞助”以打赏作者'
+	);
 });
 
 //监听私信
 client.on('message.private', (data) => {
-	if (data.raw_message == '注册') {
+	if (data.raw_message == '关于') {
+		client.sendPrivateMsg(
+			data.sender.user_id,
+			'本项目隶属于技术组织 GeekPara，创始于 2020 年，由 GeekPara CEO Juncial 发起，现转交 Czz 进行开发维护\n本项目开源于 https://github.com/GeekPara/xkTemp-Bot。\n关于 GeekPara，请访问 https://mdev.geekpara.com/about。'
+		);
+	} else if (data.raw_message == '赞助') {
+		client.sendPrivateMsg(data.sender.user_id, [
+			'打赏现任项目总监 Czz',
+			segment.image('./img/supportByAliPay.jpg'),
+			segment.image('./img/supportByWeChat.png'),
+		]);
+	} else if (data.raw_message == '注册') {
 		status[data.sender.user_id] = {};
 		status[data.sender.user_id].mode = SignUpStatus.INITING;
 		userData[data.sender.user_id].user_id = data.sender.user_id;
@@ -133,7 +147,10 @@ client.on('message.private', (data) => {
 	} else if (
 		status[data.sender.user_id].input == SignUpStatus.WAITING_FOR_DORM
 	) {
-		if (data.raw_message.length != 4 || /\d{4}/g.test(data.raw_message) == false) {
+		if (
+			data.raw_message.length != 4 ||
+			/\d{4}/g.test(data.raw_message) == false
+		) {
 			client.sendPrivateMsg(
 				data.sender.user_id,
 				'宿舍号不符合格式，请检查修改后重新发送！'
@@ -170,7 +187,7 @@ client.on('message.private', (data) => {
 			);
 			client.sendPrivateMsg(
 				data.sender.user_id,
-				'注册成功，将自动为您订阅每日打卡情况推送'
+				'注册成功，将自动为您订阅每日打卡情况推送。\n欢迎加入用户反馈群，群号：418755490。\n如需注销服务请联系群主。'
 			);
 		} else if (data.raw_message == '修改姓名') {
 			client.sendPrivateMsg(data.sender.user_id, '请发送学生姓名：');
