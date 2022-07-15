@@ -8,6 +8,8 @@
 import { createClient, segment } from 'oicq';
 import fs from 'fs';
 import SignUpStatus from './status.js';
+import { dailyTask } from './schedule.js';
+import { getToken } from './lib.js';
 
 const account = 2945673565;
 const client = createClient(account);
@@ -40,7 +42,7 @@ client.on('request.friend', async (data) => {
 });
 
 //监听私信
-client.on('message.private', (data) => {
+client.on('message.private', async (data) => {
 	if (data.raw_message == '关于') {
 		client.sendPrivateMsg(
 			data.sender.user_id,
@@ -52,10 +54,10 @@ client.on('message.private', (data) => {
 			segment.image('./img/supportByAliPay.jpg'),
 			segment.image('./img/supportByWeChat.png'),
 		]);
-	} else if (data.raw_message == '注册') {
-		status[data.sender.user_id] = {};
-		status[data.sender.user_id].mode = SignUpStatus.INITING;
-		userData[data.sender.user_id].user_id = data.sender.user_id;
+	}
+	if (data.raw_message == '注册') {
+		status[data.sender.user_id] = { mode: SignUpStatus.INITING };
+		userData[data.sender.user_id] = { user_id: data.sender.user_id };
 		client.sendPrivateMsg(
 			data.sender.user_id,
 			'请按照提示进行注册，在任意时刻发送“取消”以终止注册流程'
@@ -174,6 +176,15 @@ client.on('message.private', (data) => {
 				userData[data.sender.user_id].headTeacher
 			}\n宿舍号：${userData[data.sender.user_id].dorm}`
 		);
+
+		let tryLogin = await getToken(
+			userData[data.sender.user_id].mobile,
+			userData[data.sender.user_id].password
+		);
+		if(tryLogin.resultCode !== 0) {
+			client.sendPrivateMsg(data.sender.user_id, '温馨提示：手机号和密码不匹配，请修改。')
+		}
+
 		status[data.sender.user_id].input = SignUpStatus.WAITING_FOR_ACCEPT;
 	} else if (
 		status[data.sender.user_id].input == SignUpStatus.WAITING_FOR_ACCEPT
