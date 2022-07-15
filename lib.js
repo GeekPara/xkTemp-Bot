@@ -8,7 +8,7 @@ const XkApis = {
 };
 
 // 主干
-async function main({
+export async function main({
 	// 解构入参对象
 	mobile,
 	password,
